@@ -3,25 +3,23 @@
 #include <Windows.h>
 
 HHOOK hHook{ NULL };
-int sequentialKeys = 0;
-const int DELTA_LIMIT = 10;
+int keysPressed = 0;
+const int DELTA_LIMIT = 10;      // Time threshold in milliseconds between each key stroke
+const int SEQUENTIAL_KEYS = 3;   // Sequential keys needed to trigger lock
 clock_t lastMillis = clock();
 
 LRESULT CALLBACK keyboardHook(const int code, const WPARAM wParam, const LPARAM lParam) {
 	if (wParam == WM_KEYDOWN) {
 		clock_t currentMillis = clock();
-
 		if ((currentMillis - DELTA_LIMIT) >= lastMillis) {
-			sequentialKeys = 0;
+			keysPressed = 0;
 		}
 		else {
-			sequentialKeys++;
+			keysPressed++;
 		}
-
-		std::cout << sequentialKeys << " ";
-
-		if (sequentialKeys >= 3) {
-			std::cout << "Locked" << std::endl;
+		std::cout << keysPressed;
+		if (keysPressed >= SEQUENTIAL_KEYS) {
+			std::cout << " Smashed" << std::endl;
 			LockWorkStation();
 		}
 		lastMillis = currentMillis;
@@ -30,9 +28,10 @@ LRESULT CALLBACK keyboardHook(const int code, const WPARAM wParam, const LPARAM 
 }
 
 int main() {
+	std::cout << "Ready to smash.." << std::endl;
 	hHook = SetWindowsHookEx(WH_KEYBOARD_LL, keyboardHook, NULL, 0);
 	if (hHook == NULL) {
-		std::cout << "Unable to hook keyboard" << std::endl;
+		std::cout << "Lemme Smash" << std::endl;
 	}
 	while (GetMessage(NULL, NULL, 0, 0));
 	return 0;
